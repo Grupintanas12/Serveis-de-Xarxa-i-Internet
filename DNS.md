@@ -61,7 +61,7 @@ Rendimiento DNS:
 Ve a la web de https://www.grc.com/dns/benchmark.htm
 
 
-<img width="717" height="456" alt="image12" src="https://github.com/user-attachments/assets/78b9ef04-ec73-4116-ba10-646da073bc96" />
+
 <img width="581" height="461" alt="image5" src="https://github.com/user-attachments/assets/850cbfc4-3fcb-4952-bb1f-95f22b9b40bd" />
 
 
