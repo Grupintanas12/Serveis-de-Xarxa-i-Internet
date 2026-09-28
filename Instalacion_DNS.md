@@ -1,5 +1,5 @@
 # Manual: configuración de red e instalación de un servidor DNS en Debian (VirtualBox)
-##1. Objetivo y escenario
+## 1. Objetivo y escenario
 
 Preparar una máquina virtual Debian con IP estática para instalar y configurar un servidor DNS (BIND9).
 
