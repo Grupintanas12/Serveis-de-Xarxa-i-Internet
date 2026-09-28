@@ -1,5 +1,5 @@
-Manual: configuración de red e instalación de un servidor DNS en Debian (VirtualBox)
-1. Objetivo y escenario
+#Manual: configuración de red e instalación de un servidor DNS en Debian (VirtualBox)
+##1. Objetivo y escenario
 
 Preparar una máquina virtual Debian con IP estática para instalar y configurar un servidor DNS (BIND9).
 
@@ -7,7 +7,7 @@ Adaptador	Tipo VirtualBox	Interfaz	Configuración
 Adaptador 1	NAT	enp0s3	DHCP (10.0.2.15), da salida a internet
 Adaptador 2	Red interna	enp0s8	IP estática 192.168.6.100/24
 
-2. Acceder como administrador
+##2. Acceder como administrador
 
 Al intentar editar el archivo de red con sudo, el usuario vboxuser no tenía permisos:
 
@@ -20,7 +20,7 @@ Solución: entrar como root con la contraseña de root (la que se puso al instal
 bash
 su -
 
-3. Identificar las interfaces de red
+##3. Identificar las interfaces de red
 bash
 ip a
 
@@ -29,7 +29,7 @@ Se identifican dos interfaces: enp0s3 (NAT) y enp0s8 (red interna).
 
 
 
-4. Configurar la IP estática
+##4. Configurar la IP estática
 
 Se edita el archivo:
 
@@ -62,7 +62,7 @@ dns-nameservers no se pone aquí: esta máquina será el propio servidor DNS.
 
 <img width="648" height="292" alt="interfaces_red" src="https://github.com/user-attachments/assets/96a50e7e-5baa-4ab6-a49b-dfb9a192b5ca" />
 
-5. Aplicar los cambios y resolver el error
+##5. Aplicar los cambios y resolver el error
 bash
 systemctl restart networking
 
