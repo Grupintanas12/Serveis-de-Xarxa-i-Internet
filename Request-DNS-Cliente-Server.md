@@ -13,3 +13,7 @@ DNS
 
 
 DETALLES QUE PODEMOS OBSERVAR
+
+Las Ips son la 127.0.0.1 que es la de Loopback
+El puerto en los que se comunican son el 53 y un puerto muy por encima del 1023.
+La pagina a la cual quiere llegar es la secreto.com con IP 4.3.2.1
