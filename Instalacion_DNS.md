@@ -138,3 +138,5 @@ Se añade la opción -4 en los argumentos del usuario bind (se crea solo al inst
 <img width="842" height="337" alt="IPa_congif" src="https://github.com/user-attachments/assets/3d5958a2-5528-46a9-9394-c1d191cc17e3" />
 
 Según el status y la devolución del ipconfig, sale que el servicio está bien implementado, pero al hacer un "nslookup" no encuentra el servicio; apunta a otra dirección completamente diferente.
+
+<img width="885" height="581" alt="dnslookup" src="https://github.com/user-attachments/assets/836e0b2f-7952-42f1-a139-2a7ca97b89c6" />
