@@ -1,16 +1,6 @@
 # Manual de instalación de un servidor DNS esclavo (BIND9)
 
-Última revisión: 18/10/2026
-
-## 1. Objetivo y alcance
-
-Este manual describe cómo instalar y configurar un servidor DNS esclavo (secundario) con BIND9 que replica las zonas de un servidor maestro existente. El esclavo recibe las zonas por transferencia (AXFR/IXFR) y responde consultas autoritativas aunque el maestro no esté disponible.
-
-Entorno de referencia: Debian 13 (trixie), BIND 9.20. En RHEL, Rocky o Alma Linux los pasos son equivalentes; las diferencias de rutas y paquetes se indican donde aplica.
-
-El manual cubre la preparación del maestro, la instalación del esclavo, la autenticación de transferencias con TSIG, la verificación y el mantenimiento. No cubre DNSSEC, vistas (views) ni la configuración del maestro desde cero.
-
-## 2. Requisitos previos
+## 1. Requisitos previos
 
 Los datos del maestro están tomados de su configuración actual (capturas del 28/09/2026). Los del esclavo corresponden a la máquina dns2, configurada y verificada el 18/10/2026.
 
@@ -34,7 +24,7 @@ Requisitos técnicos:
 - Hora sincronizada por NTP en ambos equipos (chrony o systemd-timesyncd). TSIG rechaza mensajes con más de 5 minutos de desfase.
 - Mismo esquema de red que el maestro: enp0s3 en NAT por DHCP para salida a Internet y enp0s8 con IP fija en la red interna 192.168.6.0/24.
 
-## 3. Preparación del servidor maestro
+## 2. Preparación del servidor maestro
 
 El maestro tiene que autorizar la transferencia al esclavo, avisarle de los cambios y publicar el esclavo como servidor de nombres de la zona.
 
@@ -100,9 +90,9 @@ Ambos named-checkzone deben devolver loaded serial 3 y OK. En la captura de la c
 
 En producción se recomienda sustituir la IP en allow-transfer por una clave TSIG (apartado 6). Con solo la IP, cualquier equipo que suplante esa dirección puede descargar la zona completa.
 
-## 4. Instalación de BIND9 en el esclavo
+## 3. Instalación de BIND9 en el esclavo
 
-### 4.1 Red
+### 3.1 Red
 
 Configure /etc/network/interfaces con el mismo esquema que el maestro, cambiando solo la IP interna:
 
@@ -133,7 +123,7 @@ Añada ambos servidores a /etc/hosts del esclavo:
 192.168.6.101   ns2.haven.local   ns2
 ```
 
-### 4.2 Paquetes
+### 3.2 Paquetes
 
 Instale los paquetes del servidor, las utilidades de consulta y la documentación:
 
@@ -159,11 +149,11 @@ sudo systemctl enable named
 
 En Debian y Ubuntu el servicio se llama named (bind9 es un alias). Los ficheros de configuración están en /etc/bind/ y el directorio de trabajo en /var/cache/bind/. En RHEL la configuración está en /etc/named.conf y el directorio de trabajo en /var/named/.
 
-## 5. Configuración del esclavo
+## 4. Configuración del esclavo
 
-### 5.1 Opciones generales
+### 4.1 Opciones generales
 
-Edite /etc/bind/named.conf.options. El esclavo no debe permitir transferencias a terceros ni resolver recursivamente para cualquiera:
+Edita /etc/bind/named.conf.options. El esclavo no debe permitir transferencias a terceros ni resolver recursivamente para cualquiera:
 
 ```
 acl "safeclients" {
@@ -200,7 +190,7 @@ El log del maestro muestra errores network unreachable al consultar los servidor
 OPTIONS="-u bind -4"
 ```
 
-### 5.2 Directorio de zonas secundarias
+### 4.2 Directorio de zonas secundarias
 
 Cree el directorio donde BIND guardará las copias de las zonas y asigne el propietario bind:
 
@@ -211,9 +201,9 @@ sudo chown bind:bind /var/cache/bind/slaves
 
 No use /etc/bind para zonas secundarias. El perfil de AppArmor de Debian y Ubuntu solo permite a named escribir en /var/cache/bind y /var/lib/bind; si las zonas se guardan en otro sitio, la transferencia falla con permission denied. En RHEL use /var/named/slaves, que ya existe con los permisos correctos.
 
-### 5.3 Declaración de zonas
+### 4.3 Declaración de zonas
 
-Edite /etc/bind/named.conf.local y declare cada zona como secondary apuntando al maestro:
+Edita /etc/bind/named.conf.local y declare cada zona como secondary apuntando al maestro:
 
 ```
 // Busquedas directas
@@ -235,7 +225,7 @@ dns2 usa las palabras clave type slave y masters. BIND 9.20 las acepta, pero las
 
 Desde BIND 9.9 las zonas secundarias se guardan en formato binario (raw). Si necesita leerlas como texto, añada masterfile-format text; dentro de cada zona.
 
-## 6. Clave TSIG para transferencias autenticadas
+## 5. Clave TSIG para transferencias autenticadas
 
 TSIG firma las transferencias con una clave compartida, de modo que el maestro solo entrega la zona a quien tenga la clave. Es opcional en laboratorio y recomendable en producción.
 
@@ -295,7 +285,7 @@ server 192.168.6.100 {
 
 No envíe el secreto por correo ni lo guarde en repositorios. Si se compromete, genere una clave nueva y sustitúyala en los dos servidores.
 
-## 7. Firewall y arranque
+## 6. Firewall y arranque
 
 Abra el puerto 53 en TCP y UDP en el esclavo para las redes que consultan. Debian 13 no instala ufw por defecto; si no tiene otro firewall gestionado, instálelo con sudo apt install ufw y ejecute:
 
@@ -323,7 +313,7 @@ sudo systemctl status named
 
 named-checkconf no devuelve nada si la configuración es correcta. Si muestra un error, indica fichero y línea.
 
-## 8. Verificación
+## 7. Verificación
 
 La instalación es correcta cuando el esclavo tiene el mismo serial que el maestro y responde con el flag aa (autoritativo).
 
@@ -377,7 +367,7 @@ El resultado esperado es Transfer failed.
 6. Pruebe la notificación. Añada un registro de prueba en el maestro, suba el serial y ejecute sudo rndc reload haven.local. En pocos segundos el esclavo debe registrar una nueva transferencia y el dig del punto 3 debe mostrar el serial nuevo en ambos.
 7. Opcional: pare named en el maestro y repita el punto 4. El esclavo tiene que seguir respondiendo.
 
-## 9. Resolución de problemas
+## 8. Resolución de problemas
 
 La mayoría de los fallos se ven en sudo journalctl -u named en el esclavo. La tabla recoge los mensajes más habituales.
 
@@ -396,20 +386,5 @@ La mayoría de los fallos se ven en sudo journalctl -u named en el esclavo. La t
 
 Para forzar una transferencia completa desde el esclavo: sudo rndc retransfer haven.local.
 
-## 10. Mantenimiento y operación
-
-El esclavo no se edita a mano: todos los cambios de zona se hacen en el maestro y se replican solos.
-
-| Tarea | Comando o acción | Frecuencia |
-| --- | --- | --- |
-| Publicar un cambio de zona | Editar en el maestro, subir el serial, rndc reload | En cada cambio |
-| Forzar réplica completa | rndc retransfer haven.local (en el esclavo) | Cuando haya dudas de coherencia |
-| Ver estado de una zona | rndc zonestatus haven.local | Bajo demanda |
-| Comparar seriales maestro y esclavo | dig SOA +short contra ambos | Diaria, idealmente desde la monitorización |
-| Revisar caducidad | Valor expire del SOA: 3w (21 días) en las zonas actuales | Al definir la zona |
-| Actualizar BIND | apt upgrade bind9 y reinicio de named | Según avisos de seguridad de ISC |
-| Copia de seguridad | /etc/bind/ y transfer.key | Tras cada cambio de configuración |
-
-Si el esclavo pierde contacto con el maestro, sigue respondiendo hasta que se cumple el tiempo expire del SOA. Pasado ese plazo deja de responder para la zona, así que una alarma sobre la diferencia de seriales evita que un fallo del maestro pase desapercibido.
 
 No hace falta copiar los ficheros de /var/cache/bind/slaves: se regeneran con la primera transferencia.
